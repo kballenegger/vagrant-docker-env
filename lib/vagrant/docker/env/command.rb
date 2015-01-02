@@ -10,25 +10,31 @@ class DockerEnvCommand < Vagrant.plugin(2, :command)
         marker_found = true if e == '--'
       end
     end
+    load_config
     if subcommand.empty?
-      execute_subcommand(subcommand)
-    else
       print_env
+    else
+      execute_subcommand(subcommand)
     end
     0
   end
 
+  def load_config
+    loader = @env.config_loader
+    loader.load([])
+  end
+
   def execute_subcommand(subcommand)
     ($DOCKER_ENV || {}).each do |k,v|
-      ENV[k] = v
+      ENV[k.to_s] = v
     end
-    system(subcommand)
+    system(*subcommand)
   end
 
   def print_env
     str = ($DOCKER_ENV || {}).map do |k,v|
       "export #{k}=\"#{v}\""
     end.join("\n")
-    puts str
+    STDOUT.puts str
   end
 end
